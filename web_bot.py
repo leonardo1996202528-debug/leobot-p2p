@@ -46,26 +46,27 @@ def obtener_libro_p2p_publico(fiat, asset, trade_type, trans_amount):
         pass
     return []
 
-def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio, asset, fiat, trade_type):
+def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio):
     url = "https://api.binance.com/sapi/v1/c2c/ads/update"
     headers = {
         'X-MBX-APIKEY': api_key.strip(),
         'Content-Type': 'application/x-www-form-urlencoded'
     }
     server_time = int(time.time() * 1000)
-    
-    # Asegurar formato correcto de 2 decimales para el precio
     precio_str = f"{float(nuevo_precio):.2f}"
     
+    # Parámetros estrictos requeridos por Binance SAPI C2C
     params = {
         "advNo": str(adv_no).strip(),
         "price": precio_str,
-        "priceType": 1,  # 1 = Precio Fijo
+        "priceType": 1,
         "recvWindow": 60000,
         "timestamp": server_time
     }
     
-    query_string = urlencode(sorted(params.items()))
+    # Ordenamiento de parámetros alfabéticamente para la firma HMAC
+    sorted_params = sorted(params.items())
+    query_string = urlencode(sorted_params)
     signature = firmar_query_string(query_string, secret_key.strip())
     body_payload = f"{query_string}&signature={signature}"
     
@@ -96,7 +97,7 @@ with col2:
 
 st.divider()
 st.subheader("📢 Anuncio Seleccionado")
-adv_no_input = st.text_input("Número de Anuncio (advNo)", value=bot_cfg.get("adv_no", "12884580321695588352"))
+adv_no_input = st.text_input("Número de Anuncio (advNo)", value=bot_cfg.get("adv_no", ""))
 trade_type_input = st.selectbox("Tipo de Operación de tu Anuncio", ["SELL", "BUY"], index=0 if bot_cfg.get("trade_type", "SELL") == "SELL" else 1)
 
 st.divider()
@@ -118,10 +119,10 @@ with col_lim2:
 
 if st.button("💾 Guardar Configuración", type="primary"):
     nueva_data = {
-        "api_key": api_key_input,
-        "secret_key": secret_key_input,
+        "api_key": api_key_input.strip(),
+        "secret_key": secret_key_input.strip(),
         "bot_config": {
-            "adv_no": adv_no_input,
+            "adv_no": adv_no_input.strip(),
             "trade_type": trade_type_input,
             "asset": "USDT",
             "fiat": "VES",
@@ -164,7 +165,7 @@ if st.session_state.bot_ejecutando:
             nuevo_p = precio_min_input
 
         st.write(f"🔄 Competidor 1ro: **{p_comp:.2f} VES** | Objetivo: **{nuevo_p:.2f} VES**")
-        exito, msj = actualizar_precio_comerciante(api_key_input, secret_key_input, adv_no_input, nuevo_p, "USDT", "VES", trade_type_input)
+        exito, msj = actualizar_precio_comerciante(api_key_input, secret_key_input, adv_no_input, nuevo_p)
         if exito:
             st.success(f"⚡ ¡Anuncio {adv_no_input} actualizado automáticamente a {nuevo_p:.2f} VES!")
         else:
