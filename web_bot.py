@@ -53,16 +53,16 @@ def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio, ass
         'Content-Type': 'application/x-www-form-urlencoded'
     }
     server_time = int(time.time() * 1000)
-    precio_str = f"{nuevo_precio:.2f}"
+    
+    # Asegurar formato correcto de 2 decimales para el precio
+    precio_str = f"{float(nuevo_precio):.2f}"
     
     params = {
         "advNo": str(adv_no).strip(),
-        "asset": str(asset).strip(),
-        "fiat": str(fiat).strip(),
         "price": precio_str,
+        "priceType": 1,  # 1 = Precio Fijo
         "recvWindow": 60000,
-        "timestamp": server_time,
-        "tradeType": str(trade_type).strip()
+        "timestamp": server_time
     }
     
     query_string = urlencode(sorted(params.items()))
