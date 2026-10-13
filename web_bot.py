@@ -69,20 +69,16 @@ def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio, ass
     server_time = int(time.time() * 1000)
     precio_str = f"{float(nuevo_precio):.2f}"
     
-    # Parámetros estándar Binance C2C SAPI
+    # Parámetros SAPI
     params = {
         "advNo": str(adv_no).strip(),
         "price": precio_str,
-        "priceType": "1",
-        "asset": str(asset).strip(),
-        "fiat": str(fiat).strip(),
         "recvWindow": "60000",
         "timestamp": str(server_time)
     }
     
-    # Ordenar alfabéticamente para la firma HMAC
-    sorted_params = sorted(params.items())
-    query_string = urlencode(sorted_params)
+    # Firma HMAC
+    query_string = urlencode(sorted(params.items()))
     signature = firmar_query_string(query_string, secret_key.strip())
     body_payload = f"{query_string}&signature={signature}"
     
@@ -150,7 +146,7 @@ if st.button("💾 Guardar Configuración", type="primary"):
         }
     }
     guardar_configuracion(nueva_data)
-    st.success("¡Configuración guardada correctamente en el servidor!")
+    st.success("¡Configuración guardada correctamente!")
 
 st.divider()
 st.subheader("🎮 Control de Ejecución")
