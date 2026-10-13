@@ -13,7 +13,21 @@ st.set_page_config(page_title="LeoBot Panel", page_icon="🤖", layout="centered
 
 def cargar_configuracion():
     if not os.path.exists(CONFIG_FILE):
-        return {}
+        return {
+            "api_key": "",
+            "secret_key": "",
+            "bot_config": {
+                "adv_no": "12884580321695588352",
+                "trade_type": "SELL",
+                "asset": "USDT",
+                "fiat": "VES",
+                "monto_min_competidor": 4000.0,
+                "precio_maximo_limite": 1005.00,
+                "precio_minimo_limite": 999.00,
+                "centavos_ajuste": 0.05,
+                "intervalo_segundos": 6
+            }
+        }
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
@@ -53,11 +67,8 @@ def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio):
         'Content-Type': 'application/x-www-form-urlencoded'
     }
     server_time = int(time.time() * 1000)
-    
-    # Formatear precio siempre a 2 decimales
     precio_str = f"{float(nuevo_precio):.2f}"
     
-    # Payload exacto para SAPI Binance C2C Update
     params = [
         ('advNo', str(adv_no).strip()),
         ('price', precio_str),
@@ -134,7 +145,7 @@ if st.button("💾 Guardar Configuración", type="primary"):
         }
     }
     guardar_configuracion(nueva_data)
-    st.success("¡Configuración guardada correctamente!")
+    st.success("¡Configuración guardada correctamente en el servidor!")
 
 st.divider()
 st.subheader("🎮 Control de Ejecución")
