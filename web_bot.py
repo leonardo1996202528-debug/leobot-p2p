@@ -53,20 +53,20 @@ def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio):
         'Content-Type': 'application/x-www-form-urlencoded'
     }
     server_time = int(time.time() * 1000)
+    
+    # Formatear precio siempre a 2 decimales
     precio_str = f"{float(nuevo_precio):.2f}"
     
-    # Parámetros estrictos requeridos por Binance SAPI C2C
-    params = {
-        "advNo": str(adv_no).strip(),
-        "price": precio_str,
-        "priceType": 1,
-        "recvWindow": 60000,
-        "timestamp": server_time
-    }
+    # Payload exacto para SAPI Binance C2C Update
+    params = [
+        ('advNo', str(adv_no).strip()),
+        ('price', precio_str),
+        ('priceType', '1'),
+        ('recvWindow', '60000'),
+        ('timestamp', str(server_time))
+    ]
     
-    # Ordenamiento de parámetros alfabéticamente para la firma HMAC
-    sorted_params = sorted(params.items())
-    query_string = urlencode(sorted_params)
+    query_string = urlencode(params)
     signature = firmar_query_string(query_string, secret_key.strip())
     body_payload = f"{query_string}&signature={signature}"
     
