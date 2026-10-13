@@ -60,30 +60,31 @@ def obtener_libro_p2p_publico(fiat, asset, trade_type, trans_amount):
         pass
     return []
 
-def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio, asset="USDT", fiat="VES"):
-    url = "https://api.binance.com/sapi/v1/c2c/ads/update"
+def actualizar_precio_comerciante(api_key, secret_key, adv_no, nuevo_precio):
+    base_url = "https://api.binance.com/sapi/v1/c2c/ads/update"
     headers = {
-        'X-MBX-APIKEY': api_key.strip(),
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'X-MBX-APIKEY': api_key.strip()
     }
     server_time = int(time.time() * 1000)
     precio_str = f"{float(nuevo_precio):.2f}"
     
-    # Parámetros SAPI
+    # Parámetros requeridos ordenados
     params = {
         "advNo": str(adv_no).strip(),
         "price": precio_str,
+        "priceType": "1",
         "recvWindow": "60000",
         "timestamp": str(server_time)
     }
     
-    # Firma HMAC
     query_string = urlencode(sorted(params.items()))
     signature = firmar_query_string(query_string, secret_key.strip())
-    body_payload = f"{query_string}&signature={signature}"
+    
+    # Se añade la firma y la URL final con query parameters
+    full_url = f"{base_url}?{query_string}&signature={signature}"
     
     try:
-        res = requests.post(url, headers=headers, data=body_payload, timeout=5)
+        res = requests.post(full_url, headers=headers, timeout=5)
         data = res.json()
         if res.status_code == 200 and (data.get("code") == "000000" or data.get("success") is True):
             return True, "Actualizado con éxito"
@@ -177,7 +178,7 @@ if st.session_state.bot_ejecutando:
             nuevo_p = precio_min_input
 
         st.write(f"🔄 Competidor 1ro: **{p_comp:.2f} VES** | Objetivo: **{nuevo_p:.2f} VES**")
-        exito, msj = actualizar_precio_comerciante(api_key_input, secret_key_input, adv_no_input, nuevo_p, "USDT", "VES")
+        exito, msj = actualizar_precio_comerciante(api_key_input, secret_key_input, adv_no_input, nuevo_p)
         if exito:
             st.success(f"⚡ ¡Anuncio {adv_no_input} actualizado automáticamente a {nuevo_p:.2f} VES!")
         else:
